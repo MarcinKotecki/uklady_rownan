@@ -30,24 +30,24 @@ object Solver {
     val minDinv = Dinv.map(x => -x)
 
     // m1 = -D^(-1) * (L + U)
-    val m1 = time("seq", "m1")(
+    val m1 = time("seq", "m1") {
       LplusU.grouped(size).zipWithIndex.toSeq.flatMap(mult1(minDinv, size)).grouped(size).toSeq
-    )
+    }
 
     // m2 = D^(-1) * b
-    val m2 = time("seq", "m2")(
+    val m2 = time("seq", "m2") {
       (0 until size).map(mult2(Dinv, b, size))
-    )
+    }
 
     // x(k+1) = m1 * x(k) + m2
-    var res = Array.ofDim[Double](size).toSeq
     time("seq", "m3") {
+      var res = Array.ofDim[Double](size).toSeq
       for (_ <- 0 until it) {
         res = m1.map(mult3(res))
         res = (0 until size).map(id => res(id) + m2(id))
       }
+      res
     }
-    res
   }
 
   def solveParallel(A: Seq[Double], b: Seq[Double], it: Int): Seq[Double] = {
@@ -57,39 +57,40 @@ object Solver {
     val minDinv = Dinv.map(x => -x)
 
     // m1 = -D^(-1) * (L + U)
-    val m1 = time("par", "m1")(
+    val m1 = time("par", "m1") {
       Await.result(
         Source(LplusU.grouped(size).zipWithIndex.toSeq)
           .mapAsync(parallelism)(asFuture(mult1(minDinv, size)))
           .toMat(Sink.seq)(Keep.right)
           .run(),
         Duration.Inf).flatten.grouped(size).toSeq
-    )
+    }
 
     // m2 = D^(-1) * b
-    val m2 = time("par", "m2")(
+    val m2 = time("par", "m2") {
       Await.result(
         Source(0 until size)
           .mapAsync(parallelism)(asFuture(mult2(Dinv, b, size)))
           .toMat(Sink.seq)(Keep.right)
           .run(),
         Duration.Inf)
-    )
+    }
 
     // x(k+1) = m1 * x(k) + m2
-    var res = Array.ofDim[Double](size).toSeq
     time("par", "m3") {
+      var res = Array.ofDim[Double](size).toSeq
       val src = Source(m1)
       for (_ <- 0 until it) {
         res = Await.result(
-          src.mapAsync(parallelism)(asFuture(mult3(res)))
+          src
+            .mapAsync(parallelism)(asFuture(mult3(res)))
             .toMat(Sink.seq)(Keep.right)
             .run(),
           Duration.Inf)
         res = (0 until size).map(id => res(id) + m2(id))
       }
+      res
     }
-    res
 
   }
 

@@ -3,7 +3,7 @@ import Solver.{parallelism, solveParallel, solveSequential}
 import org.scalatest.FunSuite
 import org.scalatest.Matchers.convertToAnyShouldWrapper
 
-class TimeTests extends FunSuite {
+class Tests extends FunSuite {
 
   val path = "/Workspace/studia/sem6/baz/uklady_rownan/res/"
 

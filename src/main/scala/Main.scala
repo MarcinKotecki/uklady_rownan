@@ -1,9 +1,11 @@
 
-import Solver.{solveParallel, solveSequential}
+import Solver.solveParallel
 
 import scala.collection.mutable.ListBuffer
 
 object Main {
+
+  val PRINT_TIME = false
 
   var timeList: ListBuffer[TimeRecord] = ListBuffer()
 
@@ -13,7 +15,8 @@ object Main {
     val t1 = System.currentTimeMillis()
     val result = f
     val t2 = System.currentTimeMillis()
-    println("time " + _type + " " + (if (_type == "seq") -1 else Solver.parallelism) + " " + stage + " " + (t2 - t1))
+    if (PRINT_TIME)
+      println("time " + _type + " " + (if (_type == "seq") -1 else Solver.parallelism) + " " + stage + " " + (t2 - t1))
     timeList += TimeRecord(
       _type,
       if (_type == "seq") -1 else Solver.parallelism,

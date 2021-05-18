@@ -16,10 +16,10 @@ object Main {
     val result = f
     val t2 = System.currentTimeMillis()
     if (PRINT_TIME)
-      println("time " + _type + " " + (if (_type == "seq") -1 else Solver.parallelism) + " " + stage + " " + (t2 - t1))
+      println("time " + _type + " " + (if (_type == "seq") 0 else Solver.parallelism) + " " + stage + " " + (t2 - t1))
     timeList += TimeRecord(
       _type,
-      if (_type == "seq") -1 else Solver.parallelism,
+      if (_type == "seq") 0 else Solver.parallelism,
       stage,
       t2 - t1
     )

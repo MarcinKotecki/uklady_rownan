@@ -1,47 +1,40 @@
 
 import Solver.solveParallel
+import Timer.time
 
-import scala.collection.mutable.ListBuffer
+import java.io.FileWriter
 
 object Main {
 
-  val PRINT_TIME = false
-
-  var timeList: ListBuffer[TimeRecord] = ListBuffer()
-
-  case class TimeRecord(_type: String, parallelism: Int, stage: String, time: Long)
-
-  def time[T](_type: String, stage: String)(f: => T): T = {
-    val t1 = System.currentTimeMillis()
-    val result = f
-    val t2 = System.currentTimeMillis()
-    if (PRINT_TIME)
-      println("time " + _type + " " + (if (_type == "seq") 0 else Solver.parallelism) + " " + stage + " " + (t2 - t1))
-    timeList += TimeRecord(
-      _type,
-      if (_type == "seq") 0 else Solver.parallelism,
-      stage,
-      t2 - t1
-    )
-    result
+  def readMatrixFromFile(f: String): Seq[Double] = {
+    val src = scala.io.Source.fromFile(f)
+    val seq = src.getLines().flatMap(s => s.split(" +")).toArray
+    src.close
+    seq.slice(2, seq.length).map(v => v.toDouble)
   }
 
-  def readMatrixFromFile(f: String): (Int, Int, Seq[Double]) = {
-    val seq = scala.io.Source.fromFile("/home/marcin/" + f).getLines().flatMap(s => s.split(" +")).toArray
-    (
-      seq.head.toInt,
-      seq(1).toInt,
-      seq.slice(2, seq.length).map(v => v.toDouble)
-    )
+  def saveVectorToFile(f: String, v: Seq[Double]): Unit = {
+    val writer = new FileWriter(f)
+    writer.append('1').append('\n').append(v.length.toString).append('\n')
+    v.foreach(vv => writer.append(vv.toString).append("\n"))
+    writer.close()
   }
 
   def main(args: Array[String]): Unit = {
-    val (_, _, a) = readMatrixFromFile(args(1))
-    val (_, _, b) = readMatrixFromFile(args(2))
-    val it: Int = 100
+    if (args.length < 2) {
+      println("Należy wskazać 2 pliki z macierzami i nazwę pliku wynikowego")
+      System.exit(1)
+    }
+
+    val a = readMatrixFromFile(args(0))
+    val b = readMatrixFromFile(args(1))
+    val x = args(2)
+    val it: Int = if (args.length < 4) 100 else args(3).toInt
 
     val res = time("seq", "total")(solveParallel(a, b, it))
     println(res)
+    saveVectorToFile(x, res);
+    System.exit(0)
   }
 
 }

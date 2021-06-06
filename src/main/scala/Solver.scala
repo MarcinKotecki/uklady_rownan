@@ -1,4 +1,4 @@
-import Main.time
+import Timer.time
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Keep, Sink, Source}
 
@@ -17,6 +17,9 @@ object Solver {
 
   def mult2(a: Seq[Double], b: Seq[Double], size: Int)(id: Int): Double =
     a((size + 1) * id) * b(id)
+
+  def mult2b(a: Seq[Double], b: Seq[Double], size: Int)(r: Range): Seq[Double] =
+    r.map(id => a((size + 1) * id) * b(id))
 
   def mult3(a: Seq[Double])(b: Seq[Double]): Double =
     b.zipWithIndex.map(y => y._1 * a(y._2)).sum
@@ -69,11 +72,13 @@ object Solver {
     // m2 = D^(-1) * b
     val m2 = time("par", "m2") {
       Await.result(
-        Source(0 until size)
-          .mapAsync(parallelism)(asFuture(mult2(Dinv, b, size)))
+        Source(
+          (0 until parallelism).map(q => Range(q * size / parallelism, (q + 1) * size / parallelism))
+        )
+          .mapAsync(parallelism)(asFuture(mult2b(Dinv, b, size)))
           .toMat(Sink.seq)(Keep.right)
           .run(),
-        Duration.Inf)
+        Duration.Inf).flatten
     }
 
     // x(k+1) = m1 * x(k) + m2

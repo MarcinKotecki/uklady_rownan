@@ -1,15 +1,17 @@
-import Main.{readMatrixFromFile, time, timeList}
+import Main.readMatrixFromFile
 import Solver.{parallelism, solveParallel, solveSequential}
+import Timer.{time, timeList}
 import org.scalatest.FunSuite
 import org.scalatest.Matchers.convertToAnyShouldWrapper
 
 class Tests extends FunSuite {
 
-  val path = "/Workspace/studia/sem6/baz/uklady_rownan/res/"
+  val path = "./res/"
 
   test("test calculations") {
-    val (_, _, a) = readMatrixFromFile(path + "A")
-    val (_, _, b) = readMatrixFromFile(path + "b")
+
+    val a = readMatrixFromFile(path + "A")
+    val b = readMatrixFromFile(path + "b")
     val it: Int = 3
 
     val res = solveSequential(a, b, it)
@@ -23,12 +25,12 @@ class Tests extends FunSuite {
 
 
   test("time 800x800") {
-    val (_, _, a) = readMatrixFromFile(path + "800x800.txt")
-    val (_, _, b) = readMatrixFromFile(path + "1x800.txt")
-    val it: Int = 50
+    val a = readMatrixFromFile(path + "800x800.txt")
+    val b = readMatrixFromFile(path + "1x800.txt")
+    val it: Int = 1
     val repeat: Int = 5
 
-    val wait = (0 until 15000000).map(x=>Math.pow(x,x))
+    val wait = (0 until 15000000).map(x => Math.pow(x, x))
     Thread.sleep(2000)
     println("start")
 
